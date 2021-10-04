@@ -86,7 +86,12 @@ function leaveCall() {
 /* WebRTC Events */
 
 function establishCallFeatures(peer) {
-
+  peer.chatChannel = peer.connection
+    .createDataChannel(`chat`,
+      { negotiated: true, id: 50} );
+  peer.chatChannel.onmessage = function({ data }) {
+    console.log('Incoming message:', data);
+  };
 }
 
 function registerRtcEvents(peer) {
