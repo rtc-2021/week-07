@@ -56,7 +56,20 @@ function handleButton(e) {
 
 function handleChatForm(e) {
   e.preventDefault();
-  console.log('The chat form was submitted!');
+  const log = document.querySelector('#chat-log');
+  const form = e.target;
+  const input = form.querySelector('#chat-input');
+  const message = input.value;
+
+  const li = document.createElement('li');
+  li.innerText = message;
+  li.className = 'self';
+  log.appendChild(li);
+
+  // TODO: send message over data channel
+
+  console.log('The chat form was submitted. Message:', message);
+  input.value = '';
 }
 
 function joinCall() {
