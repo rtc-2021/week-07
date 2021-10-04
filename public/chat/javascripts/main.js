@@ -56,20 +56,24 @@ function handleButton(e) {
 
 function handleChatForm(e) {
   e.preventDefault();
-  const log = document.querySelector('#chat-log');
   const form = e.target;
   const input = form.querySelector('#chat-input');
   const message = input.value;
 
-  const li = document.createElement('li');
-  li.innerText = message;
-  li.className = 'self';
-  log.appendChild(li);
-
+  appendMessage('self', message);
   // TODO: send message over data channel
+  $peer.chatChannel.send(message);
 
   console.log('The chat form was submitted. Message:', message);
   input.value = '';
+}
+
+function appendMessage(sender, message) {
+  const log = document.querySelector('#chat-log');
+  const li = document.createElement('li');
+  li.innerText = message;
+  li.className = sender;
+  log.appendChild(li);
 }
 
 function joinCall() {
@@ -90,7 +94,7 @@ function establishCallFeatures(peer) {
     .createDataChannel(`chat`,
       { negotiated: true, id: 50} );
   peer.chatChannel.onmessage = function({ data }) {
-    console.log('Incoming message:', data);
+    appendMessage('peer', data);
   };
 }
 

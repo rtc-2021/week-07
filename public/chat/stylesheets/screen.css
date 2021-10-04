@@ -56,6 +56,14 @@ video {
   width: 50%;
 }
 
+#chat-log .peer {
+  background: #EEE;
+}
+#chat-log .self {
+  background: #CCE;
+}
+
+
 /* Video Filters */
 
 .filter-grayscale {
