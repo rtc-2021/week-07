@@ -111,9 +111,20 @@ async function handleRtcNegotiation() {
   console.log('RTC negotiation needed...');
   // send an SDP description
   $self.isMakingOffer = true;
-  await $peer.connection.setLocalDescription();
-  sc.emit('signal', { description:
-    $peer.connection.localDescription });
+  try {
+    // run SLD the modern way...
+    await $peer.connection.setLocalDescription();
+  } catch(e) {
+    // or, run SLD the old-school way, by manually
+    // creating an offer, and passing it to SLD
+    const offer = await $peer.connection.createOffer();
+    await $peer.connection.setLocalDescription(offer);
+  } finally {
+    // finally, however this was done, send the
+    // localDescription to the remote peer
+    sc.emit('signal', { description:
+      $peer.connection.localDescription });
+  }
   $self.isMakingOffer = false;
 }
 function handleIceCandidate({ candidate }) {
@@ -175,10 +186,22 @@ async function handleScSignal({ description, candidate }) {
     $self.isSettingRemoteAnswerPending = false;
 
     if (description.type === 'offer') {
-      await $peer.connection.setLocalDescription();
-      sc.emit('signal',
-        { description:
-          $peer.connection.localDescription });
+      // generate an answer
+      try {
+        // run SLD the modern way, to set an answer
+        await $peer.connection.setLocalDescription();
+      } catch(e) {
+        // or, run SLD the old-school way, by manually
+        // creating an answer, and passing it to SLD
+        const answer = await $peer.connection.createAnswer();
+        await $peer.connection.setLocalDescription(answer);
+      } finally {
+        // finally, however this was done, send the
+        // localDescription (answer) to the remote peer
+        sc.emit('signal',
+          { description:
+            $peer.connection.localDescription });
+      }
     }
   } else if (candidate) {
     console.log('Received ICE candidate:', candidate);
