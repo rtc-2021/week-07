@@ -131,6 +131,8 @@ function registerRtcEvents(peer) {
 }
 
 async function handleRtcNegotiation() {
+  // Don't make an initial offer if suppressing
+  if ($self.isSuppressingInitialOffer) return;
   console.log('RTC negotiation needed...');
   // send an SDP description
   $self.isMakingOffer = true;
@@ -189,6 +191,11 @@ async function handleScSignal({ description, candidate }) {
   if (description) {
     console.log('Received SDP Signal:', description);
 
+    if (description.type === '_reset') {
+      resetAndRetryConnection($peer);
+      return;
+    }
+
     const readyForOffer =
         !$self.isMakingOffer &&
         ($peer.connection.signalingState === 'stable'
@@ -203,7 +210,16 @@ async function handleScSignal({ description, candidate }) {
     }
 
     $self.isSettingRemoteAnswerPending = description.type === 'answer';
-    await $peer.connection.setRemoteDescription(description);
+    console.log('Signaling state on incoming description:',
+      $peer.connection.signalingState);
+    try {
+      await $peer.connection.setRemoteDescription(description);
+    } catch(e) {
+      // For whatever reason, we cannot SRD.
+      // Reset and retry the connection.
+      resetAndRetryConnection($peer);
+      return;
+    }
     $self.isSettingRemoteAnswerPending = false;
 
     if (description.type === 'offer') {
@@ -222,6 +238,9 @@ async function handleScSignal({ description, candidate }) {
         sc.emit('signal',
           { description:
             $peer.connection.localDescription });
+        // also, the polite peer no longer has to suppress
+        // initial offers:
+        $self.isSuppressingInitialOffer = false;
       }
     }
   } else if (candidate) {
