@@ -91,6 +91,25 @@ function resetCall(peer) {
   peer.connection = new RTCPeerConnection($self.rtcConfig);
 }
 
+function resetAndRetryConnection(peer) {
+  resetCall(peer);
+  $self.isMakingOffer = false;
+  $self.isIgnoringOffer = false;
+  $self.isSettingRemoteAnswerPending = false;
+  // Polite peer must suppress initial offer
+  $self.isSuppressingInitialOffer = $self.isPolite;
+  registerRtcEvents(peer);
+  establishCallFeatures(peer);
+
+  // Let the remote peer know we're resetting
+  if ($self.isPolite) {
+    sc.emit('signal',
+      { description:
+        { type: '_reset'}
+      });
+  }
+}
+
 /* WebRTC Events */
 
 function establishCallFeatures(peer) {
