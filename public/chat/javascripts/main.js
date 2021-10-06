@@ -82,9 +82,14 @@ function joinCall() {
   establishCallFeatures($peer);
 }
 function leaveCall() {
-  $peer.connection.close();
-  $peer.connection = new RTCPeerConnection($self.rtcConfig);
+  resetCall($peer);
   sc.close();
+}
+
+function resetCall(peer) {
+  displayStream('#peer', null);
+  peer.connection.close();
+  peer.connection = new RTCPeerConnection($self.rtcConfig);
 }
 
 /* WebRTC Events */
@@ -157,9 +162,7 @@ function handleScConnectedPeer() {
 }
 function handleScDisconnectedPeer() {
   console.log('Heard disconnected peer event!');
-  displayStream('#peer', null);
-  $peer.connection.close();
-  $peer.connection = new RTCPeerConnection($self.rtcConfig);
+  resetCall($peer);
   registerRtcEvents($peer);
   establishCallFeatures($peer);
 }
