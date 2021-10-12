@@ -2,7 +2,7 @@
 
 const $self = {
   rtcConfig: null,
-  constraints: { audio: false, video: true },
+  constraints: { audio: true, video: true },
   isPolite: false,
   isMakingOffer: false,
   isIgnoringOffer: false,
@@ -104,9 +104,10 @@ function leaveCall() {
 /* WebRTC Events */
 
 function establishCallFeatures(peer) {
-  peer.connection
-    .addTrack($self.stream.getTracks()[0],
-      $self.stream);
+  const tracks = $self.stream.getTracks();
+  for (let track of tracks) {
+    peer.connection.addTrack(track, $self.stream);
+  }
 }
 
 function registerRtcEvents(peer) {
